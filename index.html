@@ -76,31 +76,53 @@
 <body>
   <div class="container">
     <h2>Welcome! Get Your Instant Repair Quote</h2>
-  <form method="POST" action="/quote">
-      
-      <label for="Name">Name</label>
-      <input type="text" id="Name" name="Name" required>
-
-      <label for="Phone">Phone Number</label>
-      <input type="text" id="Phone" name="Phone" required>
-
-      <label for="Brand">Brand (Apple, Samsung, etc.)</label>
-      <input type="text" id="Brand" name="Brand" required>
-
-      <label for="Issue">Issue</label>
-      <input type="text" id="Issue" name="Issue" required>
-
-      <label for="Email">Email</label>
-      <input type="email" id="Email" name="Email" required>
-
-      <label for="DeviceType">Device Type (Phone, Tablet, Laptop)</label>
-      <input type="text" id="DeviceType" name="DeviceType" required>
-
-      <label for="DeviceModel">Device Model (e.g. iPhone 11, Samsung A15)</label>
-      <input type="text" id="DeviceModel" name="DeviceModel" required>
-
+    <form id="quoteForm">
+      <input id="name" placeholder="Name" required>
+      <input id="phone" placeholder="Phone" required>
+      <input id="brand" placeholder="Brand" required>
+      <input id="issue" placeholder="Issue" required>
+      <input id="email" type="email" placeholder="Email" required>
+      <input id="deviceType" placeholder="Device Type" required>
+      <input id="model" placeholder="Device Model" required>
       <button type="submit">Get Quote</button>
     </form>
+    <pre id="output" style="margin-top:30px;"></pre>
   </div>
+<script>
+const N8N_URL = "https://instantrepair.up.railway.app/webhook/quote";
+document.getElementById("quoteForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const payload = {
+    name: document.getElementById("name").value.trim(),
+    phone: document.getElementById("phone").value.trim(),
+    brand: document.getElementById("brand").value.trim(),
+    issue: document.getElementById("issue").value.trim(),
+    email: document.getElementById("email").value.trim(),
+    deviceType: document.getElementById("deviceType").value.trim(),
+    model: document.getElementById("model").value.trim(),
+    submittedAt: new Date().toISOString()
+  };
+  const btn = e.submitter || document.querySelector("#quoteForm button[type=submit]");
+  if (btn) btn.disabled = true;
+  document.getElementById("output").textContent = "Getting your quote...";
+  try {
+    const res = await fetch(N8N_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json().catch(() => ({}));
+    document.getElementById("output").textContent =
+      data.message ||
+      `Quote: ${data.quote ?? "N/A"} • Turnaround: ${data.turnaround ?? "N/A"}`;
+  } catch (err) {
+    document.getElementById("output").textContent =
+      "Sorry—couldn’t fetch your quote. Try again shortly.";
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+});
+</script>
 </body>
 </html>
