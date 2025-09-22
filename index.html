@@ -6,54 +6,77 @@
   <title>Instant Repair Quote</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f9f9f9;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
       padding: 40px;
+      min-height: 100vh;
     }
     .container {
-      max-width: 500px;
+      max-width: 520px;
       margin: 0 auto;
-      background: #fff;
-      padding: 20px 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+      padding: 28px 36px;
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      border: 2px solid #fff;
     }
     h2 {
       text-align: center;
-      color: #333;
+      color: #ff6f61;
+      font-size: 2rem;
+      margin-bottom: 18px;
+      letter-spacing: 1px;
+      font-weight: 700;
     }
     label {
       display: block;
       margin-top: 15px;
       font-weight: bold;
+      color: #007bff;
+      letter-spacing: 0.5px;
     }
     input {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+      border: 1.5px solid #90caf9;
+      border-radius: 8px;
+      background: #f6f9ff;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    input:focus {
+      border-color: #ff6f61;
+      outline: none;
+      background: #fffde7;
     }
     button {
-      margin-top: 20px;
+      margin-top: 24px;
       width: 100%;
-      padding: 12px;
-      background: #007bff;
+      padding: 14px;
+      background: linear-gradient(90deg, #ff6f61 0%, #ffb88c 100%);
       border: none;
       color: white;
-      font-size: 16px;
-      border-radius: 5px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 8px;
       cursor: pointer;
+      box-shadow: 0 2px 8px rgba(255,111,97,0.12);
+      transition: background 0.2s;
     }
     button:hover {
-      background: #0056b3;
+      background: linear-gradient(90deg, #ffb88c 0%, #ff6f61 100%);
+    }
+    form {
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Welcome! Get Your Instant Repair Quote</h2>
-    <form method="POST" action="https://primary-production-4c88d.up.railway.app/webhook/quote">
+  <form method="POST" action="/quote">
       
       <label for="Name">Name</label>
       <input type="text" id="Name" name="Name" required>
