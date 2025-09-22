@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instant Repair Quote</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      padding: 40px;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      background: #007bff;
+      border: none;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Welcome! Get Your Instant Repair Quote</h2>
+    <form method="POST" action="https://primary-production-4c88d.up.railway.app/webhook/quote">
+      
+      <label for="Name">Name</label>
+      <input type="text" id="Name" name="Name" required>
+
+      <label for="Phone">Phone Number</label>
+      <input type="text" id="Phone" name="Phone" required>
+
+      <label for="Brand">Brand (Apple, Samsung, etc.)</label>
+      <input type="text" id="Brand" name="Brand" required>
+
+      <label for="Issue">Issue</label>
+      <input type="text" id="Issue" name="Issue" required>
+
+      <label for="Email">Email</label>
+      <input type="email" id="Email" name="Email" required>
+
+      <label for="DeviceType">Device Type (Phone, Tablet, Laptop)</label>
+      <input type="text" id="DeviceType" name="DeviceType" required>
+
+      <label for="DeviceModel">Device Model (e.g. iPhone 11, Samsung A15)</label>
+      <input type="text" id="DeviceModel" name="DeviceModel" required>
+
+      <button type="submit">Get Quote</button>
+    </form>
+  </div>
+</body>
+</html>
