@@ -1,128 +1,63 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Instant Repair Quote</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-      padding: 40px;
-      min-height: 100vh;
-    }
-    .container {
-      max-width: 520px;
-      margin: 0 auto;
-      background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
-      padding: 28px 36px;
-      border-radius: 18px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      border: 2px solid #fff;
-    }
-    h2 {
-      text-align: center;
-      color: #ff6f61;
-      font-size: 2rem;
-      margin-bottom: 18px;
-      letter-spacing: 1px;
-      font-weight: 700;
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-      color: #007bff;
-      letter-spacing: 0.5px;
-    }
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-top: 5px;
-      border: 1.5px solid #90caf9;
-      border-radius: 8px;
-      background: #f6f9ff;
-      font-size: 1rem;
-      transition: border-color 0.2s;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-    }
-    input:focus {
-      border-color: #ff6f61;
-      outline: none;
-      background: #fffde7;
-    }
-    button {
-      margin-top: 24px;
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(90deg, #ff6f61 0%, #ffb88c 100%);
-      border: none;
-      color: white;
-      font-size: 1.1rem;
-      font-weight: 600;
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(255,111,97,0.12);
-      transition: background 0.2s;
-    }
-    button:hover {
-      background: linear-gradient(90deg, #ffb88c 0%, #ff6f61 100%);
-    }
-    form {
-      margin-top: 10px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h2>Welcome! Get Your Instant Repair Quote</h2>
-    <form id="quoteForm">
-      <input id="name" placeholder="Name" required>
-      <input id="phone" placeholder="Phone" required>
-      <input id="brand" placeholder="Brand" required>
-      <input id="issue" placeholder="Issue" required>
-      <input id="email" type="email" placeholder="Email" required>
-      <input id="deviceType" placeholder="Device Type" required>
-      <input id="model" placeholder="Device Model" required>
-      <button type="submit">Get Quote</button>
-    </form>
-    <pre id="output" style="margin-top:30px;"></pre>
-  </div>
 <script>
 const N8N_URL = "https://instantrepair.up.railway.app/webhook/quote";
+
+const out = (t) => (document.getElementById("output").textContent = t);
+
 document.getElementById("quoteForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+
+  // basic client-side checks
+  const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    out("Please enter a valid email."); return;
+  }
+  if (!/^[0-9+\-\s().]{7,}$/.test(phone)) {
+    out("Please enter a valid phone number."); return;
+  }
+
   const payload = {
     name: document.getElementById("name").value.trim(),
-    phone: document.getElementById("phone").value.trim(),
+    phone,
     brand: document.getElementById("brand").value.trim(),
     issue: document.getElementById("issue").value.trim(),
-    email: document.getElementById("email").value.trim(),
+    email,
     deviceType: document.getElementById("deviceType").value.trim(),
     model: document.getElementById("model").value.trim(),
     submittedAt: new Date().toISOString()
   };
+
   const btn = e.submitter || document.querySelector("#quoteForm button[type=submit]");
-  if (btn) btn.disabled = true;
-  document.getElementById("output").textContent = "Getting your quote...";
+  btn && (btn.disabled = true);
+  out("Getting your quote...");
+
   try {
     const res = await fetch(N8N_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json().catch(() => ({}));
-    document.getElementById("output").textContent =
+
+    const raw = await res.text();
+    let data = {};
+    try { data = JSON.parse(raw); } catch { /* maybe text/plain */ }
+
+    if (!res.ok) {
+      out(data?.message || `Server error: ${res.status} ${raw?.slice(0,200)}`);
+      return;
+    }
+
+    const msg =
       data.message ||
-      `Quote: ${data.quote ?? "N/A"} • Turnaround: ${data.turnaround ?? "N/A"}`;
+      (data.quote != null || data.turnaround
+        ? `Quote: ${data.quote ?? "N/A"} • Turnaround: ${data.turnaround ?? "N/A"}`
+        : raw || "Success, but no message returned.");
+
+    out(msg);
   } catch (err) {
-    document.getElementById("output").textContent =
-      "Sorry—couldn’t fetch your quote. Try again shortly.";
+    out("Sorry—couldn’t fetch your quote. Try again shortly.");
   } finally {
-    if (btn) btn.disabled = false;
+    btn && (btn.disabled = false);
   }
 });
 </script>
-</body>
-</html>
