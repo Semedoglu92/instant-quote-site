@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Instant Repair Quote</title>
   <style>
+    :root { --primary:#007bff; --primaryDark:#0056b3; --border:#ddd; --text:#333; }
     body {
       font-family: Arial, sans-serif;
       background: #f9f9f9;
@@ -18,43 +19,47 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
-    h2 {
-      text-align: center;
-      color: #333;
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-    }
+    h2 { text-align: center; color: var(--text); margin-top: 0; }
+    label { display: block; margin-top: 15px; font-weight: bold; }
     input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+      width: 100%; padding: 10px; margin-top: 5px;
+      border: 1px solid #ccc; border-radius: 5px;
     }
     button {
-      margin-top: 20px;
-      width: 100%;
-      padding: 12px;
-      background: #007bff;
-      border: none;
-      color: white;
-      font-size: 16px;
-      border-radius: 5px;
-      cursor: pointer;
+      margin-top: 20px; width: 100%; padding: 12px;
+      background: var(--primary); border: none; color: white;
+      font-size: 16px; border-radius: 5px; cursor: pointer;
     }
-    button:hover {
-      background: #0056b3;
+    button:hover { background: var(--primaryDark); }
+    button[disabled] { opacity: .7; cursor: not-allowed; }
+    #responseBox {
+      margin-top: 20px; padding: 15px; border-radius: 6px;
+      border: 1px solid var(--border); background: #f5f7fb; color: #0b1a33;
+      min-height: 20px;
+    }
+    #responseBox.hidden { display: none; }
+    #responseBox.success { background: #eefaf1; color: #0f5132; border-color: #badbcc; }
+    #responseBox.error { background: #fdecea; color: #842029; border-color: #f5c2c7; }
+    .muted { color:#666; font-size: 12px; margin-top: 8px; }
+    .spinner {
+      display: inline-block; width: 16px; height: 16px; vertical-align: -3px;
+      border: 2px solid #c9d5ff; border-top-color: var(--primary);
+      border-radius: 50%; animation: spin .8s linear infinite; margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .fieldrow {
+      display: grid; grid-template-columns: 1fr; gap: 0 12px;
+    }
+    @media (min-width: 540px) {
+      .fieldrow.two > div { display: inline-block; width: calc(50% - 6px); }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Welcome! Get Your Instant Repair Quote</h2>
-  <form method="POST" action="https://instantrepair.up.railway.app/webhook/quote">
-      
+
+    <form id="quoteForm" novalidate>
       <label for="Name">Name</label>
       <input type="text" id="Name" name="Name" required>
 
@@ -76,8 +81,86 @@
       <label for="DeviceModel">Device Model (e.g. iPhone 11, Samsung A15)</label>
       <input type="text" id="DeviceModel" name="DeviceModel" required>
 
-      <button type="submit">Get Quote</button>
+      <button id="submitBtn" type="submit">Get Quote</button>
+      <div class="muted">Your info is only used to generate a quote and contact you.</div>
     </form>
+
+    <div id="responseBox" class="hidden" role="status" aria-live="polite"></div>
   </div>
+
+  <script>
+    const form = document.getElementById("quoteForm");
+    const responseBox = document.getElementById("responseBox");
+    const submitBtn = document.getElementById("submitBtn");
+
+    function showStatus(text, type = "") {
+      responseBox.className = ""; // reset classes
+      responseBox.classList.add(type ? type : "");
+      if (!text) {
+        responseBox.classList.add("hidden");
+        responseBox.textContent = "";
+        return;
+      }
+      responseBox.classList.remove("hidden");
+      responseBox.innerHTML = text; // controlled text
+    }
+
+    function escapeHTML(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      // Build payload from form
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      // Loading state
+      submitBtn.disabled = true;
+      showStatus('<span class="spinner"></span>Please wait, I am calculating…');
+
+      try {
+        const res = await fetch("https://instantrepair.up.railway.app/webhook/quote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        const raw = await res.text();
+        let messageText = "";
+
+        // Try to parse JSON; fall back to plain text
+        try {
+          const j = JSON.parse(raw);
+
+          if (typeof j.message === "string" && j.message.trim()) {
+            messageText = j.message.trim();
+          } else {
+            const parts = [];
+            if (j.price) parts.push(`Estimated price: ${j.price}`);
+            if (j.eta) parts.push(`ETA: ${j.eta}`);
+            if (j.contact) parts.push(`We’ll reach you at ${j.contact}`);
+            const fallback = parts.join(" · ");
+            messageText = fallback || raw;
+          }
+        } catch {
+          messageText = raw;
+        }
+
+        showStatus(escapeHTML(messageText), res.ok ? "success" : "error");
+
+      } catch (err) {
+        showStatus("Network error: " + escapeHTML(err.message), "error");
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>
