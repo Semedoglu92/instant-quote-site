@@ -4,80 +4,73 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Instant Repair Quote</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f9f9f9;
-      padding: 40px;
-    }
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
-      background: #fff;
-      padding: 20px 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    h2 {
-      text-align: center;
-      color: #333;
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    button {
-      margin-top: 20px;
-      width: 100%;
-      padding: 12px;
-      background: #007bff;
-      border: none;
-      color: white;
-      font-size: 16px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h2>Welcome! Get Your Instant Repair Quote</h2>
-    <form method="POST" action="https://primary-production-4c88d.up.railway.app/webhook/quote">
-      
-      <label for="Name">Name</label>
-      <input type="text" id="Name" name="Name" required>
+  <!doctype html>
+  <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width,initial-scale=1" />
+      <title>Instant Repair Quote</title>
+      <style>
+        body{font-family:system-ui,Arial,sans-serif;background:#f6f8fb;color:#0b2545;padding:28px;}
+        .box{max-width:600px;margin:24px auto;padding:18px;border-radius:10px;background:#fff;box-shadow:0 6px 18px rgba(11,37,69,0.06)}
+        h1{margin:0 0 12px;font-size:1.4rem}
+        label{display:block;margin-top:10px;font-size:0.9rem}
+        input,textarea,select{width:100%;padding:10px;margin-top:6px;border:1px solid #e6eef8;border-radius:8px;font-size:0.95rem}
+        button{margin-top:12px;padding:10px 14px;border-radius:8px;border:none;background:#0b61ff;color:#fff;font-weight:600;cursor:pointer}
+        #output{margin-top:14px;padding:12px;background:#f3f7ff;border-radius:8px;color:#0b2545;min-height:48px}
+        .muted{color:#567}
+      </style>
+    </head>
+    <body>
+      <div class="box">
+        <h1>Get an instant quote</h1>
+        <form id="quoteForm">
+          <label for="name">Name</label>
+          <input id="name" name="Name" placeholder="Jane Doe" required />
 
-      <label for="Phone">Phone Number</label>
-      <input type="text" id="Phone" name="Phone" required>
+          <label for="phone">Phone</label>
+          <input id="phone" name="Phone" placeholder="(555) 555-5555" />
 
-      <label for="Brand">Brand (Apple, Samsung, etc.)</label>
-      <input type="text" id="Brand" name="Brand" required>
+          <label for="device">Device</label>
+          <input id="deviceType" name="DeviceType" placeholder="iPhone 12" />
 
-      <label for="Issue">Issue</label>
-      <input type="text" id="Issue" name="Issue" required>
+          <label for="issue">Issue</label>
+          <textarea id="issue" name="Issue" rows="3" placeholder="Screen cracked"></textarea>
 
-      <label for="Email">Email</label>
-      <input type="email" id="Email" name="Email" required>
+          <label for="email">Email</label>
+          <input id="email" name="Email" type="email" placeholder="you@example.com" />
 
-      <label for="DeviceType">Device Type (Phone, Tablet, Laptop)</label>
-      <input type="text" id="DeviceType" name="DeviceType" required>
+          <button type="submit">Get quote</button>
+        </form>
+        <div id="output" class="muted">No quote yet.</div>
+      </div>
 
-      <label for="DeviceModel">Device Model (e.g. iPhone 11, Samsung A15)</label>
-      <input type="text" id="DeviceModel" name="DeviceModel" required>
+      <script>
+        const ENDPOINT = '/quote';
+        const form = document.getElementById('quoteForm');
+        const output = document.getElementById('output');
 
-      <button type="submit">Get Quote</button>
-    </form>
-  </div>
-</body>
-</html>
+        form.addEventListener('submit', async (e)=>{
+          e.preventDefault();
+          output.textContent = 'Contacting server...';
+          const payload = {
+            Name: document.getElementById('name').value || '',
+            Phone: document.getElementById('phone').value || '',
+            DeviceType: document.getElementById('deviceType').value || '',
+            Issue: document.getElementById('issue').value || '',
+            Email: document.getElementById('email').value || ''
+          };
+          try{
+            const res = await fetch(ENDPOINT, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+            if(!res.ok) throw new Error('HTTP '+res.status);
+            const data = await res.json().catch(()=>({}));
+            output.innerHTML = data.message || data.quote || 'Quote received — we will contact you shortly.';
+          }catch(err){
+            console.error(err);
+            output.textContent = 'Error contacting server. See console.';
+          }
+        });
+      </script>
+    </body>
+  </html>
+          @keyframes pulse{0%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:0.6}100%{transform:scale(1);opacity:1}}
