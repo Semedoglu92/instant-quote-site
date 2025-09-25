@@ -102,7 +102,7 @@
         return;
       }
       responseBox.classList.remove("hidden");
-      responseBox.innerHTML = text; // we control the text we pass in
+      responseBox.innerHTML = text; // controlled text
     }
 
     function escapeHTML(s) {
@@ -139,11 +139,9 @@
         try {
           const j = JSON.parse(raw);
 
-          // Prefer a "message" field if present; otherwise build something readable
           if (typeof j.message === "string" && j.message.trim()) {
             messageText = j.message.trim();
           } else {
-            // Try to synthesize a friendly line from common fields
             const parts = [];
             if (j.price) parts.push(`Estimated price: ${j.price}`);
             if (j.eta) parts.push(`ETA: ${j.eta}`);
@@ -155,7 +153,6 @@
           messageText = raw;
         }
 
-        // Show final message (clean text, no braces)
         showStatus(escapeHTML(messageText), res.ok ? "success" : "error");
 
       } catch (err) {
