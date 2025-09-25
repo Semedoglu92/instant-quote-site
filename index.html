@@ -48,13 +48,19 @@
     button:hover {
       background: #0056b3;
     }
+    #responseBox {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 5px;
+      background: #f0f0f0;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Welcome! Get Your Instant Repair Quote</h2>
-    <form method="POST" action="https://instantrepair.up.railway.app/webhook/quote">
-      
+    <form id="quoteForm">
       <label for="Name">Name</label>
       <input type="text" id="Name" name="Name" required>
 
@@ -78,6 +84,38 @@
 
       <button type="submit">Get Quote</button>
     </form>
+
+    <div id="responseBox"></div>
   </div>
+
+  <script>
+    document.getElementById("quoteForm").addEventListener("submit", async function(e) {
+      e.preventDefault(); // stop normal form submission
+
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData.entries());
+
+      try {
+        const res = await fetch("https://instantrepair.up.railway.app/webhook/quote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        const text = await res.text(); // could be JSON or plain text
+        let formatted;
+
+        try {
+          formatted = JSON.stringify(JSON.parse(text), null, 2);
+        } catch {
+          formatted = text;
+        }
+
+        document.getElementById("responseBox").textContent = formatted;
+      } catch (err) {
+        document.getElementById("responseBox").textContent = "Error: " + err.message;
+      }
+    });
+  </script>
 </body>
 </html>
