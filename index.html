@@ -47,12 +47,6 @@
       border-radius: 50%; animation: spin .8s linear infinite; margin-right: 8px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .fieldrow {
-      display: grid; grid-template-columns: 1fr; gap: 0 12px;
-    }
-    @media (min-width: 540px) {
-      .fieldrow.two > div { display: inline-block; width: calc(50% - 6px); }
-    }
   </style>
 </head>
 <body>
@@ -94,15 +88,15 @@
     const submitBtn = document.getElementById("submitBtn");
 
     function showStatus(text, type = "") {
-      responseBox.className = ""; // reset classes
-      responseBox.classList.add(type ? type : "");
+      responseBox.className = "";
+      if (type) responseBox.classList.add(type);
       if (!text) {
         responseBox.classList.add("hidden");
         responseBox.textContent = "";
         return;
       }
       responseBox.classList.remove("hidden");
-      responseBox.innerHTML = text; // controlled text
+      responseBox.innerHTML = text;
     }
 
     function escapeHTML(s) {
@@ -117,16 +111,14 @@
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      // Build payload from form
       const formData = new FormData(form);
       const data = Object.fromEntries(formData.entries());
 
-      // Loading state
       submitBtn.disabled = true;
       showStatus('<span class="spinner"></span>Please wait, I am calculating…');
 
       try {
-        const res = await fetch("https://instantrepair.up.railway.app/webhook/quote", {
+        const res = await fetch("/quote", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
@@ -135,19 +127,16 @@
         const raw = await res.text();
         let messageText = "";
 
-        // Try to parse JSON; fall back to plain text
         try {
           const j = JSON.parse(raw);
-
-          if (typeof j.message === "string" && j.message.trim()) {
-            messageText = j.message.trim();
+          if (j.message) {
+            messageText = j.message;
           } else {
             const parts = [];
             if (j.price) parts.push(`Estimated price: ${j.price}`);
             if (j.eta) parts.push(`ETA: ${j.eta}`);
             if (j.contact) parts.push(`We’ll reach you at ${j.contact}`);
-            const fallback = parts.join(" · ");
-            messageText = fallback || raw;
+            messageText = parts.join(" · ") || raw;
           }
         } catch {
           messageText = raw;
