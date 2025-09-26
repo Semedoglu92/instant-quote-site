@@ -118,7 +118,7 @@
       showStatus('<span class="spinner"></span>Please wait, I am calculating…');
 
       try {
-        const res = await fetch("/quote", {
+        const res = await fetch("https://instantrepair.up.railway.app/webhook/quote", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
